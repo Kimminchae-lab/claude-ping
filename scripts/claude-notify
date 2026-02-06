@@ -1,0 +1,37 @@
+#!/bin/bash
+# claude-notify - Send a notification to Claude Notifier
+#
+# Usage:
+#   claude-notify "Title" "Body message"
+#   claude-notify "Body message"        (title defaults to "Claude Code")
+#   claude-notify                       (defaults: "Claude Code" / "Action required")
+
+set -euo pipefail
+
+QUEUE_DIR="$HOME/.claude-notifier/queue"
+mkdir -p "$QUEUE_DIR"
+
+if [ $# -eq 0 ]; then
+    TITLE="Claude Code"
+    BODY="Action required"
+elif [ $# -eq 1 ]; then
+    TITLE="Claude Code"
+    BODY="$1"
+else
+    TITLE="$1"
+    BODY="$2"
+fi
+
+FILENAME="$(date +%s)-$$.json"
+
+escape_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    printf '%s' "$s"
+}
+
+ESCAPED_TITLE=$(escape_json "$TITLE")
+ESCAPED_BODY=$(escape_json "$BODY")
+
+printf '{"title":"%s","body":"%s"}\n' "$ESCAPED_TITLE" "$ESCAPED_BODY" > "$QUEUE_DIR/$FILENAME"

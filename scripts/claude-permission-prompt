@@ -1,0 +1,90 @@
+#!/bin/bash
+# claude-permission-prompt - Handle permission requests and AskUserQuestion
+
+QUEUE_DIR="$HOME/.claude-notifier/queue"
+mkdir -p "$QUEUE_DIR"
+
+# Read JSON from stdin to temp file
+TEMP_INPUT=$(mktemp)
+cat > "$TEMP_INPUT"
+
+# Check if this is AskUserQuestion or regular permission
+IS_ASK=$(/opt/homebrew/bin/node -e '
+const fs = require("fs");
+try {
+  const input = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  if (input.tool_name === "AskUserQuestion" && input.tool_input?.questions?.[0]?.options) {
+    console.log("ask");
+  } else {
+    console.log("permission");
+  }
+} catch(e) {
+  console.log("permission");
+}
+' "$TEMP_INPUT")
+
+TIMESTAMP=$(date +%s)$$
+FILENAME="${QUEUE_DIR}/${TIMESTAMP}.json"
+
+if [ "$IS_ASK" = "ask" ]; then
+  # AskUserQuestion - write to queue for Swift app
+  /opt/homebrew/bin/node -e '
+const fs = require("fs");
+const input = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+const q = input.tool_input.questions[0];
+
+const notification = {
+  title: "Claude Code",
+  body: q.question || "Select an option",
+  type: "ask",
+  options: (q.options || []).map((o, i) => ({
+    label: o.label,
+    keystroke: String(i + 1)
+  }))
+};
+
+fs.writeFileSync(process.argv[2], JSON.stringify(notification, null, 2));
+' "$TEMP_INPUT" "$FILENAME"
+
+else
+  # Regular permission - write to queue for Swift app (uses CGEvent for keystrokes)
+  /opt/homebrew/bin/node -e '
+const fs = require("fs");
+const input = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+
+// Extract tool info for the message
+const toolName = input.tool_name || "Unknown";
+let message = "권한 승인이 필요합니다";
+
+if (input.tool_input) {
+  if (toolName === "Bash" && input.tool_input.command) {
+    const cmd = input.tool_input.command;
+    message = cmd.length > 100 ? cmd.substring(0, 100) + "..." : cmd;
+  } else if (toolName === "Edit" && input.tool_input.file_path) {
+    message = "Edit: " + input.tool_input.file_path;
+  } else if (toolName === "Write" && input.tool_input.file_path) {
+    message = "Write: " + input.tool_input.file_path;
+  } else if (toolName === "Read" && input.tool_input.file_path) {
+    message = "Read: " + input.tool_input.file_path;
+  }
+}
+
+const notification = {
+  title: "Claude Code - " + toolName,
+  body: message,
+  type: "permission",
+  options: [
+    { label: "Yes", keystroke: "y" },
+    { label: "No", keystroke: "n" }
+  ]
+};
+
+fs.writeFileSync(process.argv[2], JSON.stringify(notification, null, 2));
+' "$TEMP_INPUT" "$FILENAME"
+fi
+
+# Output original input (hooks need to pass through)
+cat "$TEMP_INPUT"
+
+# Cleanup
+rm -f "$TEMP_INPUT"
