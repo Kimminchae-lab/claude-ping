@@ -16,17 +16,31 @@ Claude Code의 권한 요청 및 AskUserQuestion을 macOS 팝업으로 알려주
 - macOS 12.0+
 - Swift 5.5+
 - Node.js (hook 스크립트용)
+- Homebrew (Swift 설치용)
 
 ## 설치
+
+### 1. 다운로드
+
+```bash
+git clone https://github.com/Kimminchae-lab/claude-ping.git
+cd claude-ping
+```
+
+### 2. 설치 스크립트 실행
 
 ```bash
 chmod +x install.sh
 ./install.sh
 ```
 
-## Claude Code Hook 설정
+### 3. 접근성 권한 허용
 
-`~/.claude/settings.json`에 추가:
+설치 후 **시스템 환경설정 > 개인정보 보호 및 보안 > 접근성**에서 ClaudeNotifier를 허용해주세요.
+
+### 4. Claude Code Hook 설정
+
+`~/.claude/settings.json` 파일을 열고 아래 내용을 추가하세요:
 
 ```json
 {
@@ -45,10 +59,6 @@ chmod +x install.sh
   }
 }
 ```
-
-## 접근성 권한
-
-첫 실행 시 **시스템 환경설정 > 개인정보 보호 및 보안 > 접근성**에서 ClaudeNotifier를 허용해야 합니다.
 
 ## 제거
 
