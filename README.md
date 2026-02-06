@@ -1,6 +1,10 @@
 # Claude Ping
 
-Claude Code의 권한 요청 및 AskUserQuestion을 macOS 팝업으로 알려주는 메뉴바 앱입니다.
+Claude Code의 권한 요청 및 AskUserQuestion을 팝업으로 알려주는 앱입니다.
+
+**지원 환경:**
+- macOS 터미널 (메뉴바 앱)
+- VSCode (확장 프로그램)
 
 ## 기능
 
@@ -65,6 +69,22 @@ chmod +x install.sh
 ```bash
 ./uninstall.sh
 ```
+
+## VSCode 확장 설치
+
+VSCode 사용자는 `vscode-extension` 폴더의 확장을 설치하세요:
+
+```bash
+cd vscode-extension
+npm install
+npm run compile
+npm run package
+```
+
+생성된 `.vsix` 파일을 VSCode에서 설치:
+- `Cmd+Shift+P` → "Install from VSIX" → 파일 선택
+
+자세한 내용은 [vscode-extension/README.md](vscode-extension/README.md) 참고.
 
 ## 라이선스
 

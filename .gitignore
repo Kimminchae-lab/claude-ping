@@ -1,5 +1,13 @@
+# macOS app build
 .build/
-.DS_Store
 *.xcodeproj
 xcuserdata/
 DerivedData/
+
+# VSCode extension
+vscode-extension/node_modules/
+vscode-extension/out/
+*.vsix
+
+# OS
+.DS_Store
